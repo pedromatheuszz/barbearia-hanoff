@@ -1,0 +1,106 @@
+// Cadastro da equipe pelo app (somente o papel "dono" acessa).
+import { HttpError } from './http.js';
+import { ROLES, hashPassword } from './auth.js';
+
+const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
+export const MIN_PASSWORD = 10;
+
+const toStaff = (r) => ({
+  username: r.username,
+  displayName: r.display_name || r.username,
+  role: r.role,
+  roleLabel: ROLES[r.role] || r.role,
+  active: r.active,
+  createdAt: new Date(r.created_at).toISOString(),
+});
+
+export async function listStaff(db) {
+  const rows = await db.query('SELECT username, display_name, role, active, created_at FROM staff_users ORDER BY active DESC, username');
+  return rows.map(toStaff);
+}
+
+export const MAX_PASSWORD = 200; // o login recusa senhas maiores
+
+// Senhas que aparecem primeiro em qualquer tentativa de adivinhação
+const COMMON = ['1234567890', '0987654321', 'senha12345', 'password12', 'qwertyuiop', 'asdfghjkl', 'abcdefghij', 'hanoff', 'barbearia', 'barbeiro', 'navalha', 'tesoura'];
+
+// Sequência de caracteres vizinhos do começo ao fim (ex.: "abcdefghij", "9876543210")
+function isSequence(s) {
+  const codes = [...s].map(c => c.codePointAt(0));
+  const step = codes[1] - codes[0];
+  return Math.abs(step) === 1 && codes.every((c, i) => i === 0 || c - codes[i - 1] === step);
+}
+
+/** Regras de senha da equipe. Mensagens em português para mostrar direto no app e no terminal. */
+export function passwordProblem(password, username = '') {
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD) return `A senha precisa ter pelo menos ${MIN_PASSWORD} caracteres`;
+  if (password.length > MAX_PASSWORD) return `A senha pode ter no máximo ${MAX_PASSWORD} caracteres`;
+  const lower = password.toLowerCase();
+  const name = String(username).toLowerCase();
+  if (new Set(lower).size < 4 || isSequence(lower) || COMMON.some(c => lower.includes(c)) || (name.length >= 3 && lower.includes(name))) {
+    return 'Senha fácil de adivinhar. Evite sequências, repetições, o nome da barbearia e o nome do usuário.';
+  }
+  return null;
+}
+
+function checkPassword(password, username) {
+  const problem = passwordProblem(password, username);
+  if (problem) throw new HttpError(422, problem);
+}
+
+export async function createStaff(db, body) {
+  const username = String(body?.username || '').trim().toLowerCase();
+  if (!USERNAME_RE.test(username)) throw new HttpError(422, 'Usuário: 3 a 32 caracteres (letras minúsculas, números, . _ -)');
+  if (!ROLES[body?.role]) throw new HttpError(422, 'Escolha um papel válido');
+  checkPassword(body?.password, username);
+  const displayName = String(body?.displayName || '').trim().slice(0, 60);
+  const [exists] = await db.query('SELECT 1 FROM staff_users WHERE username = $1', [username]);
+  if (exists) throw new HttpError(409, 'Já existe um usuário com esse nome');
+  try {
+    await db.query(
+      'INSERT INTO staff_users (username, password_hash, display_name, role) VALUES ($1, $2, $3, $4)',
+      [username, hashPassword(body.password), displayName, body.role]
+    );
+  } catch {
+    // dois cadastros iguais ao mesmo tempo: o banco recusa o segundo
+    throw new HttpError(409, 'Já existe um usuário com esse nome');
+  }
+  return username;
+}
+
+/** Atualiza nome, papel, ativo e/ou senha. Impede que a barbearia fique sem nenhum dono ativo. */
+export async function updateStaff(db, username, body, actor) {
+  const [current] = await db.query('SELECT * FROM staff_users WHERE username = $1', [username]);
+  if (!current) throw new HttpError(404, 'Usuário não encontrado');
+
+  const role = body?.role !== undefined ? body.role : current.role;
+  if (!ROLES[role]) throw new HttpError(422, 'Escolha um papel válido');
+  const active = typeof body?.active === 'boolean' ? body.active : current.active;
+  const displayName = body?.displayName !== undefined ? String(body.displayName).trim().slice(0, 60) : current.display_name;
+
+  if (current.role === 'dono' && current.active && (role !== 'dono' || !active)) {
+    const [{ n }] = await db.query("SELECT count(*)::int AS n FROM staff_users WHERE role = 'dono' AND active AND username <> $1", [username]);
+    if (n === 0) throw new HttpError(409, 'É preciso ter pelo menos um dono ativo');
+  }
+  if (username === actor && !active) throw new HttpError(409, 'Você não pode desativar o próprio usuário');
+
+  let passwordHash = current.password_hash;
+  // mudar papel, desativar, trocar a senha ou pedir "encerrar sessões" derruba os logins abertos
+  let bump = role !== current.role || active !== current.active || body?.revokeSessions === true;
+  if (body?.password) {
+    checkPassword(body.password, username);
+    passwordHash = hashPassword(body.password);
+    bump = true;
+  }
+
+  await db.query(
+    `UPDATE staff_users SET display_name = $2, role = $3, active = $4, password_hash = $5,
+            session_version = session_version + $6 WHERE username = $1`,
+    [username, displayName, role, active, passwordHash, bump ? 1 : 0]
+  );
+}
+
+export async function listAudit(db, limit = 200) {
+  const rows = await db.query('SELECT username, action, details, created_at FROM audit_log ORDER BY created_at DESC LIMIT $1', [limit]);
+  return rows.map(r => ({ username: r.username, action: r.action, details: r.details, at: new Date(r.created_at).toISOString() }));
+}

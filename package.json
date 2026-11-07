@@ -1,0 +1,38 @@
+{
+  "name": "barbearia-hanoff",
+  "version": "1.0.0",
+  "description": "Barbearia Hanoff — site de agendamento (site/), API (server/, netlify/) e app de gestão para Windows (app/)",
+  "type": "module",
+  "scripts": {
+    "catalog": "node site/scripts/build-catalog.js",
+    "predev": "npm run catalog",
+    "dev": "vite --config site/vite.config.js",
+    "prebuild": "npm run catalog",
+    "build": "vite build --config site/vite.config.js",
+    "preview": "vite preview --config site/vite.config.js",
+    "icons": "node site/scripts/generate-icons.js",
+    "lint": "eslint . --ext .js,.cjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:migrate": "node scripts/db-migrate.js",
+    "staff:add": "node scripts/staff-add.js",
+    "app": "npm --prefix app start",
+    "app:install": "npm --prefix app install",
+    "app:dist": "npm --prefix app run dist"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "1.64.1",
+    "eslint": "^8.57.1",
+    "jsdom": "^23.2.0",
+    "lucide-static": "^1.70.0",
+    "sharp": "^0.35.5",
+    "terser": "^5.51.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.2.0",
+    "gsap": "3.15.0"
+  }
+}

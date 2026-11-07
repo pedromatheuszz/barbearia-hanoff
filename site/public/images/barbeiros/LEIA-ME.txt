@@ -1,0 +1,4 @@
+Fotos dos barbeiros (opcional).
+Coloque aqui o arquivo (ex.: renan.webp, de preferência quadrado, 400x400) e informe
+o nome do arquivo no app de gestão em Serviços > Barbeiros > editar > Foto.
+Sem foto, o site mostra a inicial do barbeiro na cor escolhida.

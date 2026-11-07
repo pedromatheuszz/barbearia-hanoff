@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barbearia Hanoff | Agende seu horário online em Joinville</title>
+  <meta name="description" content="Barbearia Hanoff, no bairro Fátima em Joinville. Corte, barba, combos, tratamentos e visagismo. Escolha o serviço, o barbeiro e o horário e agende online em segundos.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0f0e0c">
+
+  <!-- Tema claro/escuro aplicado antes de desenhar a página (sem piscar) -->
+  <script type="module" src="theme-init.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Manrope:wght@400..800&display=swap">
+
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="images/emblema.svg" type="image/svg+xml">
+  <link rel="icon" href="images/icon-96.png" type="image/png" sizes="96x96">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+
+  <meta property="og:title" content="Barbearia Hanoff — agende seu horário">
+  <meta property="og:description" content="Corte, barba e cuidados com hora marcada. Fátima, Joinville/SC.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/icon-512.png">
+
+  <!-- CSP (cópia da política enviada no cabeçalho pelo vercel.json e netlify.toml) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+</head>
+<body>
+  <a class="skip-link" href="#servicos">Pular para os serviços</a>
+
+  <!-- ====== CABEÇALHO ====== -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="#inicio" class="brand" aria-label="Barbearia Hanoff, início">
+        <img src="images/emblema.svg" alt="" width="44" height="44" class="brand__emblem">
+        <span class="brand__text"><small>Barbearia</small><strong>Hanoff</strong></span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="Seções do site">
+        <a href="#servicos" class="nav__link">Serviços</a>
+        <a href="#barbeiros" class="nav__link">Barbeiros</a>
+        <a href="#como-funciona" class="nav__link">Como funciona</a>
+        <a href="#contato" class="nav__link">Onde estamos</a>
+      </nav>
+
+      <div class="header__actions">
+        <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema claro e escuro" title="Tema claro / escuro">
+          <svg class="icon theme-toggle__moon" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+          <svg class="icon theme-toggle__sun" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg>
+        </button>
+        <button class="btn btn--primary btn--sm header__cta" type="button" data-book>
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-calendar-plus"></use></svg>
+          <span>Agendar</span>
+        </button>
+        <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <!-- ====== ABERTURA ====== -->
+    <section class="hero">
+      <div class="hero__bg" aria-hidden="true"><div class="hero__glow"></div><div class="hero__lines"></div></div>
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <p class="eyebrow" data-anim="hero">Barbearia em Joinville · Fátima</p>
+          <h1 class="hero__title" data-anim="hero">Corte e barba <em>com hora marcada.</em></h1>
+          <p class="hero__lead" data-anim="hero">Escolha o serviço, o barbeiro e o melhor horário para você. Sem fila e sem esperar resposta no WhatsApp.</p>
+
+          <div class="hero__actions" data-anim="hero">
+            <button class="btn btn--primary btn--lg" type="button" data-book>
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-calendar-plus"></use></svg>
+              <span>Agendar horário</span>
+            </button>
+            <a class="btn btn--ghost btn--lg" id="hero-whatsapp" href="#contato" target="_blank" rel="noopener">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"></use></svg>
+              <span>WhatsApp</span>
+            </a>
+          </div>
+
+          <div class="status-pill" id="store-status" data-anim="hero" role="status">
+            <span class="status-pill__dot"></span><span id="store-status-text">Carregando horário…</span>
+          </div>
+
+          <ul class="proof" data-anim="hero">
+            <li>
+              <a class="proof__item" id="proof-google" href="https://maps.app.goo.gl/VcS8KrUpas2oegE57" target="_blank" rel="noopener">
+                <strong><svg class="icon icon--fill" aria-hidden="true" focusable="false"><use href="#i-star"></use></svg> 4,9</strong>
+                <span>no Google · 137 avaliações</span>
+              </a>
+            </li>
+            <li class="proof__item"><strong id="proof-barbers">5</strong><span>barbeiros</span></li>
+            <li class="proof__item"><strong id="proof-services">23</strong><span>serviços</span></li>
+          </ul>
+        </div>
+
+        <!-- Próximos horários livres, ao vivo pela API -->
+        <aside class="ticket" data-anim="ticket" aria-labelledby="ticket-title">
+          <div class="ticket__head">
+            <img src="images/emblema.svg" alt="" width="52" height="52">
+            <div>
+              <h2 id="ticket-title">Próximos horários livres</h2>
+              <p id="ticket-service">Corte · 30 min</p>
+            </div>
+          </div>
+          <div class="ticket__tear" aria-hidden="true"></div>
+          <ul class="ticket__slots" id="hero-slots" aria-live="polite">
+            <li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li><li class="skeleton"></li>
+          </ul>
+          <button class="ticket__more" type="button" data-book>
+            Ver todos os horários
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg>
+          </button>
+        </aside>
+
+        <div class="pole" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
+    <!-- ====== SERVIÇOS ====== -->
+    <section class="section" id="servicos">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">Serviços e valores</p>
+          <h2>Do corte ao <em>visagismo</em></h2>
+          <p>Escolha um ou mais serviços e agende tudo de uma vez. A duração já entra na conta do horário.</p>
+        </div>
+        <div class="tabs" id="services-tabs" role="tablist" aria-label="Categorias de serviço" data-reveal></div>
+        <div class="services" id="services-list" aria-live="polite"></div>
+        <p class="services__note" id="services-note" hidden></p>
+      </div>
+    </section>
+
+    <!-- ====== BARBEIROS ====== -->
+    <section class="section section--alt" id="barbeiros">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">Equipe</p>
+          <h2>Escolha quem vai <em>cuidar de você</em></h2>
+          <p>Ou marque "sem preferência" e fique com o primeiro horário livre.</p>
+        </div>
+        <div class="barbers" id="barbers-list"></div>
+      </div>
+    </section>
+
+    <!-- ====== COMO FUNCIONA ====== -->
+    <section class="section" id="como-funciona">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">Agendamento online</p>
+          <h2>Três toques e <em>está marcado</em></h2>
+        </div>
+        <ol class="steps">
+          <li class="step" data-reveal>
+            <span class="step__num">1</span>
+            <h3>Escolha o serviço</h3>
+            <p>Corte, barba, combos e tratamentos, com valor e duração na tela.</p>
+          </li>
+          <li class="step" data-reveal>
+            <span class="step__num">2</span>
+            <h3>Barbeiro e horário</h3>
+            <p>Só aparecem horários realmente livres, atualizados na hora.</p>
+          </li>
+          <li class="step" data-reveal>
+            <span class="step__num">3</span>
+            <h3>Pronto</h3>
+            <p>Você recebe um link para colocar na agenda do celular ou cancelar, se precisar.</p>
+          </li>
+        </ol>
+
+        <ul class="amenities" data-reveal aria-label="Comodidades">
+          <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wifi"></use></svg>Wi-Fi</li>
+          <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-car"></use></svg>Estacionamento</li>
+          <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-accessibility"></use></svg>Acessibilidade</li>
+          <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-qr-code"></use></svg>Pix, débito e crédito</li>
+          <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-heart-handshake"></use></svg>Acolhe a comunidade LGBTQ+</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ====== ONDE ESTAMOS ====== -->
+    <section class="section section--alt" id="contato">
+      <div class="container contact">
+        <div class="contact__info" data-reveal>
+          <p class="eyebrow">Onde estamos</p>
+          <h2>Estamos no <em>Fátima</em></h2>
+          <p class="contact__address" id="contact-address">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-map-pin"></use></svg>
+            <span>R. Florianópolis, 3001 — Fátima<br>Joinville/SC</span>
+          </p>
+          <div class="contact__actions">
+            <a class="btn btn--primary" id="contact-maps" href="https://maps.app.goo.gl/VcS8KrUpas2oegE57" target="_blank" rel="noopener">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-navigation"></use></svg><span>Como chegar</span>
+            </a>
+            <a class="btn btn--ghost" id="contact-whatsapp" href="#" target="_blank" rel="noopener" hidden>
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"></use></svg><span>WhatsApp</span>
+            </a>
+            <a class="btn btn--ghost" id="contact-instagram" href="#" target="_blank" rel="noopener" hidden>
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-instagram"></use></svg><span>Instagram</span>
+            </a>
+          </div>
+          <p class="contact__phone" id="contact-phone" hidden></p>
+        </div>
+
+        <div class="hours card" data-reveal>
+          <h3><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg> Horário de atendimento</h3>
+          <dl class="hours__list" id="hours-list"></dl>
+          <p class="hours__note">Horário de Brasília. Feriados podem ter horário diferente: confira os horários livres no agendamento.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ====== RODAPÉ ====== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <a href="#inicio" class="brand brand--footer" aria-label="Barbearia Hanoff, voltar ao início">
+        <img src="images/emblema.svg" alt="" width="52" height="52" class="brand__emblem">
+        <span class="brand__text"><small>Barbearia</small><strong>Hanoff</strong></span>
+      </a>
+      <p class="footer__address" id="footer-address">R. Florianópolis, 3001 — Fátima · Joinville/SC</p>
+      <nav class="footer__links" aria-label="Links do rodapé">
+        <a href="#servicos">Serviços</a>
+        <a href="#barbeiros">Barbeiros</a>
+        <a href="/agendamento/">Meu agendamento</a>
+        <a href="#contato">Onde estamos</a>
+      </nav>
+      <p class="footer__copy">© <span id="footer-year">2026</span> Barbearia Hanoff</p>
+    </div>
+  </footer>
+
+  <!-- Horário já marcado neste aparelho -->
+  <a class="next-booking" id="next-booking" href="/agendamento/" hidden></a>
+
+  <!-- ====== AGENDAMENTO ====== -->
+  <div class="booking" id="booking" hidden>
+    <div class="booking__backdrop" data-close></div>
+    <div class="booking__panel" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+      <header class="booking__head">
+        <button class="icon-btn" type="button" id="booking-back" aria-label="Voltar">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>
+        </button>
+        <div class="booking__titles">
+          <span class="booking__step" id="booking-step">Passo 1 de 4</span>
+          <h2 id="booking-title">Escolha os serviços</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="Fechar">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg>
+        </button>
+      </header>
+      <div class="booking__progress" aria-hidden="true"><span id="booking-progress"></span></div>
+      <div class="booking__body" id="booking-body"></div>
+      <footer class="booking__foot" id="booking-foot">
+        <div class="booking__summary" id="booking-summary"></div>
+        <button class="btn btn--primary" type="button" id="booking-next">Continuar</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/sw-register.js"></script>
+</body>
+</html>

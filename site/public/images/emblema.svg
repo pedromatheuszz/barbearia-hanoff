@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Barbearia Hanoff">
+  <defs>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0d9a8"/>
+      <stop offset="0.45" stop-color="#c9a46a"/>
+      <stop offset="1" stop-color="#8f6d3a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.38" r="0.7">
+      <stop offset="0" stop-color="#2a241c"/>
+      <stop offset="1" stop-color="#0f0e0c"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="250" fill="url(#glow)"/>
+  <circle cx="256" cy="256" r="232" fill="none" stroke="url(#brass)" stroke-width="10"/>
+  <circle cx="256" cy="256" r="212" fill="none" stroke="url(#brass)" stroke-width="2.5" opacity="0.55"/>
+  <g fill="url(#brass)">
+    <!-- monograma H (estilo didone: hastes grossas, serifas e travessa finas) -->
+    <path d="M152 160h46v192h-46z"/>
+    <path d="M128 148h94v12h-94z"/>
+    <path d="M128 352h94v12h-94z"/>
+    <path d="M314 160h46v192h-46z"/>
+    <path d="M290 148h94v12h-94z"/>
+    <path d="M290 352h94v12h-94z"/>
+    <path d="M198 248h116v13h-116z"/>
+    <!-- estrelas de quatro pontas -->
+    <path d="M256 70l7 15 15 7-15 7-7 15-7-15-15-7 15-7z"/>
+    <path d="M256 398l7 15 15 7-15 7-7 15-7-15-15-7 15-7z"/>
+    <path d="M100 256l5 9 9 5-9 5-5 9-5-9-9-5 9-5z" opacity="0.8"/>
+    <path d="M412 256l5 9 9 5-9 5-5 9-5-9-9-5 9-5z" opacity="0.8"/>
+  </g>
+</svg>

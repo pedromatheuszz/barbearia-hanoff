@@ -1,0 +1,10 @@
+node_modules/
+dist/
+site/src/generated/
+site/public/images/
+site/dist/
+app/node_modules/
+app/dist/
+test-results/
+playwright-report/
+.data/

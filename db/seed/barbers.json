@@ -1,0 +1,13 @@
+[
+  { "id": "daniel", "name": "Daniel", "color": "#c9a46a" },
+  { "id": "gabriel", "name": "Gabriel", "color": "#4f8a8b" },
+  {
+    "id": "renan", "name": "Renan", "color": "#b5503c",
+    "prices": {
+      "corte": 55, "barba": 45, "corte_sobrancelhas": 70, "corte_barba": 95,
+      "corte_barba_sobrancelhas": 105, "corte_barba_express": 75, "corte_barba_express_sobrancelhas": 80
+    }
+  },
+  { "id": "victor", "name": "Victor", "color": "#7b6bb0" },
+  { "id": "yago", "name": "Yago", "color": "#5f8f4e" }
+]

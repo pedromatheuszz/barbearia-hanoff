@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu agendamento | Barbearia Hanoff</title>
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0f0e0c">
+  <script type="module" src="../theme-init.js"></script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Manrope:wght@400..800&display=swap">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="icon" href="/images/emblema.svg" type="image/svg+xml">
+  <link rel="icon" href="/images/icon-96.png" type="image/png" sizes="96x96">
+</head>
+<body class="page-simple">
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="/" class="brand" aria-label="Barbearia Hanoff, voltar ao site">
+        <img src="/images/emblema.svg" alt="" width="44" height="44" class="brand__emblem">
+        <span class="brand__text"><small>Barbearia</small><strong>Hanoff</strong></span>
+      </a>
+      <div class="header__actions">
+        <a class="btn btn--ghost btn--sm" href="/#servicos">Serviços</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="tracking" aria-live="polite">
+    <section class="tracking-card card" id="t-loading">
+      <p class="tracking__muted">Carregando seu agendamento…</p>
+    </section>
+
+    <!-- Sem link: lista os horários marcados neste aparelho -->
+    <section class="tracking-card card" id="t-list" hidden>
+      <p class="tracking__eyebrow">Meus agendamentos</p>
+      <h1 class="tracking__title">Seus horários</h1>
+      <p class="tracking__muted" id="t-list-hint">Horários marcados neste aparelho.</p>
+      <div class="my-list" id="t-list-items"></div>
+      <a class="btn btn--primary btn--block" href="/#servicos">Agendar um horário</a>
+    </section>
+
+    <section class="tracking-card card" id="t-error" hidden>
+      <p class="tracking__eyebrow">Agendamento</p>
+      <h1 class="tracking__title">Não encontramos</h1>
+      <p class="tracking__muted" id="t-error-msg">Confira o link que você recebeu ao agendar ou fale com a barbearia.</p>
+      <a class="btn btn--primary btn--block" href="/">Voltar ao site</a>
+    </section>
+
+    <section class="tracking-card card" id="t-booking" hidden>
+      <p class="tracking__eyebrow">Agendamento <span id="t-code">#0000</span></p>
+      <h1 class="tracking__title" id="t-title">Olá!</h1>
+      <span class="t-status" id="t-status"></span>
+      <div class="b-recap" id="t-recap"></div>
+      <div class="tracking__actions" id="t-actions"></div>
+      <div class="confirm-box" id="t-confirm" hidden>
+        <p><strong>Cancelar este horário?</strong> Ele fica livre para outra pessoa agendar.</p>
+        <div class="row">
+          <button class="btn btn--danger btn--sm" type="button" id="t-confirm-yes">Sim, cancelar</button>
+          <button class="btn btn--ghost btn--sm" type="button" id="t-confirm-no">Manter horário</button>
+        </div>
+      </div>
+      <button class="tracking__cancel" type="button" id="t-cancel" hidden>Cancelar agendamento</button>
+      <p class="tracking__muted" id="t-note" style="font-size: 13.5px; text-align: center"></p>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <script type="module" src="../src/agendamento.js"></script>
+</body>
+</html>

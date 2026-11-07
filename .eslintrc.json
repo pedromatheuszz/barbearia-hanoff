@@ -1,0 +1,88 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "extends": "eslint:recommended",
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "args": "none"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "scripts/**/*.js",
+        "site/scripts/**/*.js",
+        "*.config.js",
+        "site/*.config.js",
+        "app/main.js",
+        "app/preload.cjs",
+        "app/lib/**/*.js",
+        "server/**/*.js",
+        "netlify/**/*.js"
+      ],
+      "env": {
+        "node": true,
+        "browser": false
+      }
+    },
+    {
+      "files": [
+        "site/public/sw.js"
+      ],
+      "env": {
+        "serviceworker": true,
+        "browser": false
+      }
+    },
+    {
+      "files": [
+        "tests/**/*.js"
+      ],
+      "env": {
+        "node": true
+      },
+      "globals": {
+        "describe": "readonly",
+        "it": "readonly",
+        "expect": "readonly",
+        "vi": "readonly",
+        "beforeAll": "readonly",
+        "afterAll": "readonly",
+        "beforeEach": "readonly",
+        "afterEach": "readonly",
+        "test": "readonly"
+      }
+    },
+    {
+      "files": [
+        "app/renderer/**/*.js"
+      ],
+      "env": {
+        "browser": true,
+        "node": false
+      }
+    },
+    {
+      "files": [
+        "app/preload.cjs"
+      ],
+      "parserOptions": {
+        "sourceType": "script"
+      },
+      "env": {
+        "node": true,
+        "browser": false
+      }
+    }
+  ]
+}

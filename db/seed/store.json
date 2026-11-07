@@ -1,0 +1,21 @@
+{
+  "storeName": "Barbearia Hanoff",
+  "whatsappPhone": "5547997715710",
+  "address": "R. Florianópolis, 3001 — Fátima",
+  "city": "Joinville/SC",
+  "instagram": "barbeariahanoff",
+  "mapsUrl": "https://maps.app.goo.gl/VcS8KrUpas2oegE57",
+  "hours": [
+    null,
+    { "open": "13:30", "close": "20:00" },
+    { "open": "09:00", "close": "20:00", "breakStart": "12:00", "breakEnd": "13:30" },
+    { "open": "09:00", "close": "20:00", "breakStart": "12:00", "breakEnd": "13:30" },
+    { "open": "09:00", "close": "20:00", "breakStart": "12:00", "breakEnd": "13:30" },
+    { "open": "09:00", "close": "20:00", "breakStart": "12:00", "breakEnd": "13:30" },
+    { "open": "08:00", "close": "18:00", "breakStart": "12:00", "breakEnd": "13:00" }
+  ],
+  "slotInterval": 15,
+  "minNoticeMinutes": 30,
+  "maxDaysAhead": 30,
+  "cancelHours": 2
+}

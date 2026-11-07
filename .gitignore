@@ -1,0 +1,19 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.vite/
+*.log
+.DS_Store
+Thumbs.db
+site/src/generated/
+site/dist/
+app/dist/
+app/node_modules/
+.tmp/
+
+# Banco local de desenvolvimento e variáveis secretas
+.data/
+.env
+.env.local
+.vercel
