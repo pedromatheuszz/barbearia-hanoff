@@ -31,9 +31,32 @@ function iconSprite() {
   };
 }
 
+// Endereço público do site, usado nas prévias de link (WhatsApp, Instagram), no canonical e no sitemap.
+// Ordem: SITE_URL (domínio próprio) → domínio de produção da Vercel → URL do Netlify → padrão.
+const SITE_URL = (process.env.SITE_URL
+  || (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
+  || process.env.URL
+  || 'https://barbearia-hanoff.vercel.app').replace(/\/+$/, '');
+
+// Troca __SITE_URL__ no HTML e gera robots.txt e sitemap.xml no build
+function siteMeta() {
+  return {
+    name: 'site-meta',
+    transformIndexHtml: { order: 'pre', handler: (html) => html.replaceAll('__SITE_URL__', SITE_URL) },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\nAllow: /\nDisallow: /agendamento/\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n` });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'sitemap.xml',
+        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${SITE_URL}/</loc></url>\n</urlset>\n`,
+      });
+    },
+  };
+}
+
 export default defineConfig({
   root: import.meta.dirname,
-  plugins: [iconSprite(), devApi()],
+  plugins: [siteMeta(), iconSprite(), devApi()],
   publicDir: resolve(import.meta.dirname, 'public'),
   build: {
     outDir: resolve(import.meta.dirname, 'dist'),
@@ -51,6 +74,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         agendamento: resolve(import.meta.dirname, 'agendamento/index.html'),
+        notFound: resolve(import.meta.dirname, '404.html'),
       },
       output: {
         // GSAP em um arquivo separado (muda pouco, fica no cache do navegador)

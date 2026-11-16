@@ -488,7 +488,7 @@ textarea.input { height: auto; min-height: 84px; padding: 0.6rem 0.75rem; resize
 .splash { position: fixed; inset: 0; top: var(--titlebar-h); z-index: 90; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(201, 164, 106, 0.16), transparent 45%), #0b0a08; transition: opacity 0.35s ease, visibility 0.35s; }
 .splash.is-done { opacity: 0; visibility: hidden; }
 .splash__logo { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
-.splash__logo img { width: 112px; height: 112px; border-radius: 50%; position: relative; z-index: 1; animation: breathe 2.2s ease-in-out infinite; }
+.splash__logo img { width: 112px; height: 112px; position: relative; z-index: 1; animation: breathe 2.2s ease-in-out infinite; }
 .splash__logo::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--brand); border-right-color: var(--brand); animation: spin 1s linear infinite; }
 .splash p { margin: 1.4rem 0 0; color: #b3a894; font-size: 13px; text-align: center; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -655,3 +655,6 @@ textarea.input { height: auto; min-height: 84px; padding: 0.6rem 0.75rem; resize
 .stat-inline div { display: grid; }
 .stat-inline strong { font-family: var(--font-display); font-size: 22px; }
 .stat-inline span { font-size: 12px; color: var(--text-3); }
+
+/* emblema transparente com traço escuro: clareia no tema escuro */
+[data-theme="dark"] img[src$="emblema.png"], .splash__logo img, .login__brand img[src$="emblema.png"] { filter: invert(1) sepia(0.12); }

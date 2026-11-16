@@ -16,15 +16,48 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Manrope:wght@400..800&display=swap">
 
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="images/emblema.svg" type="image/svg+xml">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="images/icon-96.png" type="image/png" sizes="96x96">
   <link rel="apple-touch-icon" href="images/icon-192.png">
   <link rel="manifest" href="manifest.json">
 
+  <link rel="canonical" href="__SITE_URL__/">
+
+  <!-- Prévia do link no WhatsApp, Instagram e Facebook (URLs absolutas, trocadas no build) -->
   <meta property="og:title" content="Barbearia Hanoff — agende seu horário">
   <meta property="og:description" content="Corte, barba e cuidados com hora marcada. Fátima, Joinville/SC.">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="/images/icon-512.png">
+  <meta property="og:url" content="__SITE_URL__/">
+  <meta property="og:site_name" content="Barbearia Hanoff">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:image" content="__SITE_URL__/images/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Emblema da Barbearia Hanoff">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Dados da barbearia para o Google (não é executado; a CSP não se aplica) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BarberShop",
+    "name": "Barbearia Hanoff",
+    "url": "__SITE_URL__/",
+    "image": "__SITE_URL__/images/og-image.png",
+    "logo": "__SITE_URL__/images/icon-512.png",
+    "telephone": "+55 47 99771-5710",
+    "priceRange": "R$ 15 – R$ 500",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "R. Florianópolis, 3001 — Fátima",
+      "addressLocality": "Joinville",
+      "addressRegion": "SC",
+      "addressCountry": "BR"
+    },
+    "hasMap": "https://maps.app.goo.gl/VcS8KrUpas2oegE57",
+    "sameAs": ["https://www.instagram.com/barbeariahanoff/"]
+  }
+  </script>
 
   <!-- CSP (cópia da política enviada no cabeçalho pelo vercel.json e netlify.toml) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
@@ -52,7 +85,7 @@
           <svg class="icon theme-toggle__moon" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
           <svg class="icon theme-toggle__sun" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg>
         </button>
-        <button class="btn btn--primary btn--sm header__cta" type="button" data-book>
+        <button class="btn btn--primary btn--sm header__cta" type="button" data-book aria-label="Agendar horário">
           <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-calendar-plus"></use></svg>
           <span>Agendar</span>
         </button>

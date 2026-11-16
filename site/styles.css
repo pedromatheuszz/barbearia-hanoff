@@ -166,7 +166,8 @@ p { margin: 0; }
 .header.is-scrolled { background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px) saturate(1.3); border-bottom-color: var(--line); }
 .header__inner { display: flex; align-items: center; gap: 1.5rem; }
 .brand { display: inline-flex; align-items: center; gap: 0.7rem; text-decoration: none; }
-.brand__emblem { width: 44px; height: 44px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35)); }
+.brand__emblem { width: 44px; height: 44px; }
+[data-theme="dark"] img[src$="emblema.svg"] { filter: invert(1) sepia(0.12); }
 .brand__text { display: grid; line-height: 1; }
 .brand__text small { font-size: 10.5px; font-weight: 800; letter-spacing: 0.32em; text-transform: uppercase; color: var(--text-3); }
 .brand__text strong { font-family: var(--font-display); font-size: 25px; font-weight: 700; letter-spacing: 0.04em; margin-top: 3px; }

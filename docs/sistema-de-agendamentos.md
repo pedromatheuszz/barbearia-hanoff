@@ -80,7 +80,7 @@ Tudo já está configurado em `vercel.json`: build (`npm run build`), pasta publ
 1. Na Vercel, **Add New › Project** e importe o repositório do GitHub.
 2. Em *Framework Preset* deixe **Other**. Não mude build, pasta de saída nem install: o `vercel.json` já define.
 3. Em *Environment Variables*, cadastre `DATABASE_URL` e `SESSION_SECRET` (os mesmos do `.env.local`). Elas precisam existir também no build, para o site sair com o catálogo atual.
-4. **Deploy.** Depois, em *Settings › Domains*, ligue o domínio próprio.
+4. **Deploy.** Depois, em *Settings › Domains*, ligue o domínio próprio. Com o domínio ligado, o próximo deploy já usa ele no canonical, no sitemap e na prévia de link do WhatsApp (variável `VERCEL_PROJECT_PRODUCTION_URL` da Vercel); no Netlify, ou para forçar outro endereço, cadastre `SITE_URL`.
 5. Teste `https://<seu-endereço>/api/catalog` (deve responder com os serviços) e faça login no app apontando para esse endereço.
 
 Como funciona: a Vercel não usa as rotas de cada arquivo de `netlify/functions/`. O `vercel.json` manda todo `/api/*` para uma função só, `api/router.js`, que escolhe a função certa pela tabela de `server/routes.js`. As funções são as mesmas nas duas hospedagens. **Ao criar uma função nova em `netlify/functions/`, inclua-a também em `server/routes.js`.**

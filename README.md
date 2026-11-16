@@ -20,7 +20,7 @@ npm test                    # testes unitários e da API
 npm run test:e2e            # testes do site no navegador
 npm run lint
 npm run build               # gera site/dist (publicado pela Vercel ou Netlify)
-npm run icons               # refaz os ícones (site e app) a partir de site/public/images/emblema.svg
+npm run icons               # refaz os ícones (site e app) a partir de site/scripts/assets/logo-hanoff.png
 
 npm run app:install         # dependências do app (uma vez)
 npm --prefix app run dev    # abre o app apontando para http://localhost:3000
