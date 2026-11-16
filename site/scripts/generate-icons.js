@@ -1,7 +1,7 @@
 /**
  * Gera o emblema, os ícones e a prévia de link (og-image.png) a partir da logo original (site/scripts/assets/logo-hanoff.png,
  * desenho preto/cinza sobre fundo claro):
- *  - site/public/images/emblema.svg: emblema transparente com traço escuro (o CSS inverte no tema escuro)
+ *  - site/public/images/logo-hanoff.svg: emblema transparente com traço escuro (o CSS inverte no tema escuro)
  *  - site/public/images/favicon.svg: mesmo emblema, segue o tema do sistema (prefers-color-scheme)
  *  - PWA: site/public/images/icon-*.png (traço creme sobre o fundo da marca)
  *  - App de gestão: app/build/icon.png (disco escuro + traço creme) e app/renderer/assets/emblema.png (transparente)
@@ -57,7 +57,7 @@ const svgFrom = (b64, style = '') =>
 const dark512 = (await ink(DARK_INK, 512)).toString('base64');
 const IMG = path.join(SITE, 'public/images');
 fs.mkdirSync(IMG, { recursive: true });
-fs.writeFileSync(path.join(IMG, 'emblema.svg'), svgFrom(dark512));
+fs.writeFileSync(path.join(IMG, 'logo-hanoff.svg'), svgFrom(dark512));
 fs.writeFileSync(path.join(IMG, 'favicon.svg'), svgFrom(dark512, '<style>@media (prefers-color-scheme: dark){image{filter:invert(1)}}</style>'));
 for (const size of SIZES) await (await onDisc(size, 0.8, false)).toFile(path.join(IMG, `icon-${size}.png`));
 

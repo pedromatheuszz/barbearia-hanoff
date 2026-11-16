@@ -4,10 +4,10 @@
  * - Arquivos com hash do build (/assets/) e imagens: cache primeiro.
  * - A API (/api/) nunca é guardada: horários livres mudam a cada agendamento.
  */
-const VERSION = 'hanoff-v3';
+const VERSION = 'hanoff-v4';
 const PAGES = `${VERSION}-pages`;
 const STATIC = `${VERSION}-static`;
-const CORE = ['/', '/agendamento/', '/manifest.json', '/images/emblema.svg', '/images/favicon.svg', '/images/icon-192.png'];
+const CORE = ['/', '/agendamento/', '/manifest.json', '/images/logo-hanoff.svg', '/images/favicon.svg', '/images/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(PAGES).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()).catch(() => {}));
