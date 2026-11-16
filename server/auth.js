@@ -3,6 +3,7 @@
 // ativo, com o mesmo papel e a mesma versão de sessão (trocar senha ou desativar derruba o acesso).
 import crypto from 'crypto';
 import { HttpError } from './http.js';
+import { enforceAccess, DEV_ROLE } from './devices.js';
 
 const SESSION_HOURS = 14;
 // scrypt com custo N = 2^17 (recomendação atual da OWASP). O formato guarda os parâmetros,
@@ -17,7 +18,11 @@ export const ROLES = {
   dono: 'Dono',
   recepcao: 'Recepção',
   barbeiro: 'Barbeiro',
+  dev: 'Desenvolvedor', // criado só pelo terminal (npm run staff:add -- nome dev); não aparece na Equipe
 };
+
+// Papéis que o dono pode dar pelo app
+export const ASSIGNABLE_ROLES = ['dono', 'recepcao', 'barbeiro'];
 
 // Permissão → papéis que a têm
 const PERMISSIONS = {
@@ -34,10 +39,12 @@ const PERMISSIONS = {
   'cash.operate': ['dono', 'recepcao'],
   'finance.view': ['dono'],
   'staff.manage': ['dono'],
+  'system.devices': [],                                // computadores e bloqueio do app (só o desenvolvedor)
 };
 
-export const permissionsFor = (role) => Object.keys(PERMISSIONS).filter(p => PERMISSIONS[p].includes(role));
-export const can = (role, permission) => PERMISSIONS[permission]?.includes(role) ?? false;
+// o desenvolvedor tem todas as permissões
+export const permissionsFor = (role) => Object.keys(PERMISSIONS).filter(p => role === DEV_ROLE || PERMISSIONS[p].includes(role));
+export const can = (role, permission) => (permission in PERMISSIONS) && (role === DEV_ROLE || PERMISSIONS[permission].includes(role));
 
 function secret() {
   const s = process.env.SESSION_SECRET;
@@ -121,6 +128,8 @@ export async function requireStaff(req, db, permission) {
   if (!token) throw new HttpError(401, 'Faça login para continuar');
   const [row] = await db.query('SELECT username, display_name, role, active, session_version FROM staff_users WHERE username = $1', [token.username]);
   if (!row || !row.active || row.session_version !== token.version) throw new HttpError(401, 'Sua sessão expirou. Entre novamente.');
+  // app ou computador bloqueado pelo desenvolvedor: 423 (o app mostra o aviso na tela de login)
+  await enforceAccess(db, req, row.username, row.role);
   if (permission && !can(row.role, permission)) throw new HttpError(403, 'Seu usuário não tem permissão para isso');
   return toPublicUser(row);
 }

@@ -1,6 +1,6 @@
 // Hanoff Gestão — inicialização, login, menu, busca rápida, atalhos e agendamentos em segundo plano
 import { h, $, icon, toast, modal, field, input, time, dayShort, todayISO } from './ui.js';
-import { get, patch, setUnauthorizedHandler, setConnectionHandler } from './api.js';
+import { get, patch, setUnauthorizedHandler, setConnectionHandler, setLockedHandler } from './api.js';
 import agenda, { openAppointment, openNewAppointment, openBlock } from './views/agenda.js';
 import historico from './views/historico.js';
 import clientes from './views/clientes.js';
@@ -10,8 +10,9 @@ import caixa from './views/caixa.js';
 import financeiro from './views/financeiro.js';
 import equipe from './views/equipe.js';
 import ajustes from './views/ajustes.js';
+import dispositivos from './views/dispositivos.js';
 
-const VIEWS = [agenda, historico, clientes, servicos, barbearia, caixa, financeiro, equipe, ajustes];
+const VIEWS = [agenda, historico, clientes, servicos, barbearia, caixa, financeiro, equipe, ajustes, dispositivos];
 const GROUPS = ['Operação', 'Barbearia', 'Gestão', 'Sistema'];
 const POLL_MS = 8000;
 const STORE_POLL_MS = 60000;
@@ -521,6 +522,7 @@ async function start() {
   setupShortcuts();
   setUnauthorizedHandler((msg) => { if (state.user) showLogin(msg || 'Sua sessão expirou. Entre novamente.'); });
   setConnectionHandler(setConnection);
+  setLockedHandler((msg) => { if (state.user) showLogin(msg); });
   $('#search-icon').replaceChildren(icon('search', { size: 15 }));
   $('#search-trigger').addEventListener('click', openPalette);
   $('#logout').replaceChildren(icon('logout', { size: 16 }));
@@ -535,6 +537,7 @@ async function start() {
   $('#version-text').textContent = `v${state.config.version}`;
   const user = await window.gestao.restoreSession();
   if (user && !user.offline) await enterApp(user);
+  else if (user?.locked) await showLogin(user.error);
   else await showLogin(user?.offline ? `${user.error}. Confira a internet e tente de novo.` : '');
   // abertura visível por um instante, sem piscar
   setTimeout(() => $('#splash').classList.add('is-done'), Math.max(0, 700 - (Date.now() - started)));

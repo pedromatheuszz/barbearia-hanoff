@@ -9,6 +9,8 @@ export class ApiError extends Error {
 
 let onUnauthorized = () => {};
 let onConnection = () => {};
+let onLocked = () => {};
+export const setLockedHandler = (fn) => { onLocked = fn; };
 export const setUnauthorizedHandler = (fn) => { onUnauthorized = fn; };
 export const setConnectionHandler = (fn) => { onConnection = fn; };
 
@@ -18,6 +20,11 @@ export async function api(method, path, body) {
   if (res.status === 401) {
     onUnauthorized(res.data?.error);
     throw new ApiError(res.data?.error || 'Sessão expirada', 401);
+  }
+  // app ou computador bloqueado pelo desenvolvedor
+  if (res.status === 423) {
+    onLocked(res.data?.error);
+    throw new ApiError(res.data?.error || 'App bloqueado', 423);
   }
   if (!res.ok) throw new ApiError(res.data?.error || `Erro ${res.status}`, res.status);
   return res.data;

@@ -179,8 +179,10 @@ kbd {
 .sidebar {
   display: flex; flex-direction: column; gap: 0.25rem; min-height: 0;
   padding: 0.85rem 0.7rem 0.7rem; background: var(--bg); border-right: 1px solid var(--border);
-  overflow-y: auto; overflow-x: hidden;
+  overflow: hidden;
 }
+/* só o menu rola quando a tela é baixa: o cartão da agenda e o usuário ficam sempre inteiros */
+#nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
 .nav-group { display: grid; gap: 2px; margin-bottom: 0.65rem; }
 .nav-group__label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-3); padding: 0.35rem 0.75rem; white-space: nowrap; }
 .nav__item {
@@ -219,6 +221,7 @@ kbd {
 
 .user-card { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.2rem 0; }
 .user-card__info { min-width: 0; flex: 1; }
+.user-card > .btn, .user-card > .avatar { flex-shrink: 0; }
 .user-card__name { font-weight: 700; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-card__role { font-size: 12px; color: var(--text-3); }
 .app.is-collapsed .user-card { flex-direction: column; }

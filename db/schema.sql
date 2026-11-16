@@ -211,3 +211,28 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 CREATE INDEX IF NOT EXISTS audit_log_created_at_idx ON audit_log (created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- Controle do desenvolvedor: computadores com o app de gestão e bloqueio geral
+-- ---------------------------------------------------------------------------
+
+-- Cada instalação do app tem um id próprio (gerado no primeiro uso) enviado em toda chamada.
+CREATE TABLE IF NOT EXISTS app_devices (
+  id           TEXT PRIMARY KEY,
+  name         TEXT NOT NULL DEFAULT '',
+  app_version  TEXT NOT NULL DEFAULT '',
+  last_user    TEXT,
+  blocked      BOOLEAN NOT NULL DEFAULT false,
+  note         TEXT NOT NULL DEFAULT '',
+  first_seen   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_seen    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Linha única: app liberado ou bloqueado para todos (menos o desenvolvedor)
+CREATE TABLE IF NOT EXISTS app_license (
+  id          INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  blocked     BOOLEAN NOT NULL DEFAULT false,
+  message     TEXT NOT NULL DEFAULT '',
+  updated_by  TEXT,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);

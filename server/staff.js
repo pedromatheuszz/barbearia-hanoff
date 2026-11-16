@@ -1,6 +1,6 @@
 // Cadastro da equipe pelo app (somente o papel "dono" acessa).
 import { HttpError } from './http.js';
-import { ROLES, hashPassword } from './auth.js';
+import { ROLES, ASSIGNABLE_ROLES, hashPassword } from './auth.js';
 
 const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
 export const MIN_PASSWORD = 10;
@@ -15,7 +15,8 @@ const toStaff = (r) => ({
 });
 
 export async function listStaff(db) {
-  const rows = await db.query('SELECT username, display_name, role, active, created_at FROM staff_users ORDER BY active DESC, username');
+  // o usuário desenvolvedor não aparece para a barbearia
+  const rows = await db.query("SELECT username, display_name, role, active, created_at FROM staff_users WHERE role <> 'dev' ORDER BY active DESC, username");
   return rows.map(toStaff);
 }
 
@@ -51,7 +52,7 @@ function checkPassword(password, username) {
 export async function createStaff(db, body) {
   const username = String(body?.username || '').trim().toLowerCase();
   if (!USERNAME_RE.test(username)) throw new HttpError(422, 'Usuário: 3 a 32 caracteres (letras minúsculas, números, . _ -)');
-  if (!ROLES[body?.role]) throw new HttpError(422, 'Escolha um papel válido');
+  if (!ASSIGNABLE_ROLES.includes(body?.role)) throw new HttpError(422, 'Escolha um papel válido');
   checkPassword(body?.password, username);
   const displayName = String(body?.displayName || '').trim().slice(0, 60);
   const [exists] = await db.query('SELECT 1 FROM staff_users WHERE username = $1', [username]);
@@ -71,10 +72,10 @@ export async function createStaff(db, body) {
 /** Atualiza nome, papel, ativo e/ou senha. Impede que a barbearia fique sem nenhum dono ativo. */
 export async function updateStaff(db, username, body, actor) {
   const [current] = await db.query('SELECT * FROM staff_users WHERE username = $1', [username]);
-  if (!current) throw new HttpError(404, 'Usuário não encontrado');
+  if (!current || current.role === 'dev') throw new HttpError(404, 'Usuário não encontrado');
 
   const role = body?.role !== undefined ? body.role : current.role;
-  if (!ROLES[role]) throw new HttpError(422, 'Escolha um papel válido');
+  if (!ASSIGNABLE_ROLES.includes(role)) throw new HttpError(422, 'Escolha um papel válido');
   const active = typeof body?.active === 'boolean' ? body.active : current.active;
   const displayName = body?.displayName !== undefined ? String(body.displayName).trim().slice(0, 60) : current.display_name;
 
@@ -101,6 +102,9 @@ export async function updateStaff(db, username, body, actor) {
 }
 
 export async function listAudit(db, limit = 200) {
-  const rows = await db.query('SELECT username, action, details, created_at FROM audit_log ORDER BY created_at DESC LIMIT $1', [limit]);
+  const rows = await db.query(
+    `SELECT username, action, details, created_at FROM audit_log
+      WHERE username NOT IN (SELECT username FROM staff_users WHERE role = 'dev')
+      ORDER BY created_at DESC LIMIT $1`, [limit]);
   return rows.map(r => ({ username: r.username, action: r.action, details: r.details, at: new Date(r.created_at).toISOString() }));
 }

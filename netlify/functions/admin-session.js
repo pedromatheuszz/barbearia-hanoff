@@ -7,6 +7,7 @@ import { getDb } from '../../server/db.js';
 import { handle, json, readJson, clientIpHash, methodNotAllowed, HttpError } from '../../server/http.js';
 import { verifyPassword, hashPassword, needsRehash, createToken, requireStaff, toPublicUser, audit } from '../../server/auth.js';
 import { countEvents, addEvent, clearEvents } from '../../server/rate-limit.js';
+import { enforceAccess } from '../../server/devices.js';
 
 const WINDOW_MIN = 15;
 const MAX_FAILURES_IP = 10;   // do mesmo computador/rede
@@ -54,6 +55,7 @@ export default handle(async (req, context) => {
     throw new HttpError(401, 'Usuário ou senha incorretos');
   }
   if (!user.active) throw new HttpError(403, 'Usuário desativado. Fale com o dono da barbearia.');
+  await enforceAccess(db, req, user.username, user.role);
 
   await db.query('DELETE FROM login_attempts WHERE ip_hash = $1', [ipHash]);
   await clearEvents(db, 'login-user', name);

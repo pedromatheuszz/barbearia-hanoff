@@ -101,6 +101,21 @@ O app é distribuído pelo instalador `.exe`, sem assinatura digital.
 1. Aumente `version` em `app/package.json` (ex.: 1.0.0 → 1.0.1) e gere o instalador de novo.
 2. Rode o instalador novo por cima do antigo. As configurações (som, servidor) são mantidas; pode ser preciso entrar de novo.
 
+## Login de desenvolvedor (dispositivos e bloqueio do app)
+
+O papel **Desenvolvedor** (`dev`) é para quem mantém o sistema. Ele é criado só pelo terminal e não aparece na tela Equipe nem no registro de alterações da barbearia; o dono também não consegue editá-lo nem criar outro pelo app.
+
+1. Rode `npm run db:migrate` (cria as tabelas `app_devices` e `app_license`; antes disso o controle fica desligado e o app funciona normalmente).
+2. Crie o login: `npm run staff:add -- seu-usuario dev`.
+3. No app, entre com esse usuário: aparece a tela **Sistema › Dispositivos**.
+
+Na tela Dispositivos:
+
+- **Computadores:** cada instalação do app se identifica (nome do computador, versão, último usuário e último acesso). Dá para dar um apelido, **bloquear** ou **liberar** cada um. Um computador bloqueado sai do app na próxima atualização (em segundos) e não consegue entrar de novo.
+- **Acesso ao app:** **Bloquear app** tira todos os usuários da barbearia do app, com uma mensagem opcional na tela de login (ex.: mensalidade em aberto). **Liberar app** volta tudo ao normal.
+- O login de desenvolvedor nunca é bloqueado, em nenhum computador, para sempre ser possível liberar.
+- O bloqueio vale só para o app de gestão: o site e os agendamentos dos clientes continuam funcionando.
+
 ## Desenvolvimento local
 
 ```

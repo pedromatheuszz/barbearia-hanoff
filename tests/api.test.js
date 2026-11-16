@@ -29,6 +29,7 @@ const adminCash = await fn('admin-cash');
 const adminFinance = await fn('admin-finance');
 const reports = await fn('admin-reports');
 const adminStaff = await fn('admin-staff');
+const adminDevices = await fn('admin-devices');
 
 let db;
 
@@ -600,5 +601,88 @@ describe('proteções da revisão de segurança', () => {
     const [row] = await db.query("SELECT details FROM audit_log WHERE action = 'teste.longo'");
     expect(row.details.notes).toHaveLength(300);
     expect(row.details.lista).toHaveLength(30);
+  });
+});
+
+describe('login de desenvolvedor: dispositivos e bloqueio do app', () => {
+  const PC_RECEPCAO = 'pc-recepcao-0000000001';
+  const PC_DEV = 'pc-desenvolvedor-000001';
+  // chamada do app, identificando o computador como o app de gestão faz
+  const call = (handler, method, path, { token, body, device, params = {} } = {}) => handler(new Request(BASE + path, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(device ? { 'x-device-id': device, 'x-device-name': encodeURIComponent(`Balcão ${device.slice(0, 6)}`), 'x-app-version': '1.0.0' } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }), ctx({ params }));
+  let dev;
+
+  beforeAll(async () => {
+    await db.query("INSERT INTO staff_users (username, password_hash, display_name, role) VALUES ('suporte', $1, 'Suporte', 'dev')", [hashPassword('dev-senha-forte-987')]);
+    dev = (await login('suporte', 'dev-senha-forte-987')).token;
+  });
+
+  it('o desenvolvedor tem todas as permissões e não aparece na Equipe', async () => {
+    const me = await read(await call(session, 'GET', '/api/admin/session', { token: dev, device: PC_DEV }));
+    expect(me.user.role).toBe('dev');
+    expect(me.user.permissions).toContain('system.devices');
+    expect(me.user.permissions).toContain('staff.manage');
+    const { staff } = await read(await call(adminStaff, 'GET', '/api/admin/staff', { token: owner }));
+    expect(staff.map(u => u.username)).not.toContain('suporte');
+    // o dono não edita nem cria um desenvolvedor pelo app
+    const edit = await call(adminStaff, 'PATCH', '/api/admin/staff/suporte', { token: owner, body: { active: false }, params: { username: 'suporte' } });
+    expect(edit.status).toBe(404);
+    const create = await call(adminStaff, 'POST', '/api/admin/staff', { token: owner, body: { username: 'outro-dev', role: 'dev', password: 'Xq7!kd92Lm#p' } });
+    expect(create.status).toBe(422);
+  });
+
+  it('só o desenvolvedor acessa a tela de dispositivos', async () => {
+    expect((await call(adminDevices, 'GET', '/api/admin/devices', { token: owner })).status).toBe(403);
+  });
+
+  it('registra os computadores que usam o app', async () => {
+    await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: PC_RECEPCAO });
+    const { devices, license } = await read(await call(adminDevices, 'GET', '/api/admin/devices', { token: dev, device: PC_DEV }));
+    expect(license.blocked).toBe(false);
+    const pc = devices.find(d => d.id === PC_RECEPCAO);
+    expect(pc).toMatchObject({ lastUser: 'dono', appVersion: '1.0.0', blocked: false });
+    expect(pc.name).toBe('Balcão pc-rec');
+  });
+
+  it('bloquear um computador derruba o acesso só nele', async () => {
+    const res = await call(adminDevices, 'PATCH', `/api/admin/devices/${PC_RECEPCAO}`, { token: dev, body: { blocked: true }, params: { id: PC_RECEPCAO } });
+    expect(res.status).toBe(200);
+    const blocked = await read(await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: PC_RECEPCAO }));
+    expect(blocked.status).toBe(423);
+    expect(blocked.error).toMatch(/computador foi bloqueado/);
+    // nem o login passa nesse computador
+    const relogin = await read(await call(session, 'POST', '/api/admin/session', { body: { username: 'dono', password: 'senha-de-teste-123' }, device: PC_RECEPCAO }));
+    expect(relogin.status).toBe(423);
+    // outro computador segue normal; o desenvolvedor entra até no bloqueado
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: 'pc-outro-000000000001' })).status).toBe(200);
+    expect((await call(adminDevices, 'GET', '/api/admin/devices', { token: dev, device: PC_RECEPCAO })).status).toBe(200);
+    // bloqueado não sai da lista (voltaria liberado)
+    expect((await call(adminDevices, 'DELETE', `/api/admin/devices/${PC_RECEPCAO}`, { token: dev, params: { id: PC_RECEPCAO } })).status).toBe(409);
+    await call(adminDevices, 'PATCH', `/api/admin/devices/${PC_RECEPCAO}`, { token: dev, body: { blocked: false }, params: { id: PC_RECEPCAO } });
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: PC_RECEPCAO })).status).toBe(200);
+  });
+
+  it('bloquear o app vale para todos, menos o desenvolvedor, e o site continua no ar', async () => {
+    await call(adminDevices, 'PATCH', '/api/admin/devices', { token: dev, body: { blocked: true, message: 'Mensalidade em aberto.' } });
+    const blocked = await read(await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner }));
+    expect(blocked).toMatchObject({ status: 423, error: 'Mensalidade em aberto.' });
+    expect((await login('dono', 'senha-de-teste-123')).status).toBe(423);
+    expect((await call(adminDevices, 'GET', '/api/admin/devices', { token: dev })).status).toBe(200);
+    expect((await catalogApi(new Request(`${BASE}/api/catalog`), ctx())).status).toBe(200);
+
+    await call(adminDevices, 'PATCH', '/api/admin/devices', { token: dev, body: { blocked: false } });
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner })).status).toBe(200);
+  });
+
+  it('as ações do desenvolvedor não aparecem no registro da barbearia', async () => {
+    const { entries } = await read(await call(adminStaff, 'GET', '/api/admin/staff?audit=1', { token: owner }));
+    expect(entries.some(e => e.username === 'suporte')).toBe(false);
   });
 });

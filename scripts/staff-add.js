@@ -1,6 +1,8 @@
 /**
  * Cria ou redefine a senha de um usuário da equipe no banco Neon.
- * Uso: npm run staff:add -- nome-do-usuario [dono|recepcao|barbeiro]
+ * Uso: npm run staff:add -- nome-do-usuario [dono|recepcao|barbeiro|dev]
+ * "dev" é o login de desenvolvedor: acesso total, tela Dispositivos (bloquear/liberar o app)
+ * e não aparece na Equipe da barbearia.
  * Use para criar o primeiro dono; os demais usuários podem ser cadastrados pelo app (Equipe).
  * A senha é pedida no terminal (mínimo 10 caracteres) e guardada só como hash scrypt.
  */
@@ -15,7 +17,7 @@ Object.assign(process.env, { ...loadEnv('production', process.cwd(), ''), ...pro
 const username = (process.argv[2] || '').trim().toLowerCase();
 const role = (process.argv[3] || 'dono').trim().toLowerCase();
 if (!ROLES[role]) {
-  console.error('Papel inválido. Use: dono, recepcao ou barbeiro');
+  console.error('Papel inválido. Use: dono, recepcao, barbeiro ou dev');
   process.exit(1);
 }
 if (!/^[a-z0-9._-]{3,32}$/.test(username)) {

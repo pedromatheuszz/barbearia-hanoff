@@ -28,6 +28,7 @@ npm run app:dist            # gera o instalador em app/dist/
 
 npm run db:migrate          # cria/atualiza as tabelas no Neon (DATABASE_URL no .env.local)
 npm run staff:add -- nome   # cria o primeiro dono
+npm run staff:add -- nome dev  # cria o login de desenvolvedor (tela Dispositivos: bloquear/liberar o app)
 ```
 
 Sem `DATABASE_URL`, o `npm run dev` usa um Postgres local de teste em `.data/`. Com `DATABASE_URL` no `.env.local`, ele usa o banco real.

@@ -1,9 +1,11 @@
 // Hanoff Gestão — processo principal do Electron.
 // A interface (renderer/) roda isolada, sem Node; tudo que sai para a rede passa por aqui:
 // o token de login fica só neste processo e as chamadas vão para a API do site (/api/admin/*).
-import { app, BrowserWindow, ipcMain, protocol, net, Notification, shell, dialog, Menu, safeStorage, nativeImage, session } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol, net, Notification, shell, Menu, safeStorage, nativeImage, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import crypto from 'crypto';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { loadConfig, saveConfig, normalizeServerUrl } from './lib/config.js';
 
@@ -16,7 +18,6 @@ const REQUEST_TIMEOUT_MS = 15000;
 
 let win = null;
 let token = null;
-let quitting = false;
 
 // Endereço da interface empacotada. Só ela pode chamar o processo principal.
 const APP_ORIGIN = 'app://gestao';
@@ -67,11 +68,35 @@ async function readPersistedToken() {
   }
 }
 
+// ---------- Identificação deste computador ----------
+
+// Id próprio desta instalação (o desenvolvedor vê e bloqueia cada computador pelo id)
+let deviceId = null;
+function getDeviceId() {
+  if (deviceId) return deviceId;
+  const file = path.join(app.getPath('userData'), 'device.json');
+  try {
+    const saved = JSON.parse(fs.readFileSync(file, 'utf8')).id;
+    if (/^[A-Za-z0-9-]{16,64}$/.test(saved)) return (deviceId = saved);
+  } catch { /* primeiro uso */ }
+  deviceId = crypto.randomUUID();
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify({ id: deviceId }));
+  } catch { /* sem disco: vale enquanto o app estiver aberto */ }
+  return deviceId;
+}
+
 // ---------- Chamadas à API ----------
 
 async function callApi(method, apiPath, body) {
   const { serverUrl } = loadConfig();
-  const headers = { Accept: 'application/json' };
+  const headers = {
+    Accept: 'application/json',
+    'X-Device-Id': getDeviceId(),
+    'X-Device-Name': encodeURIComponent(os.hostname()),
+    'X-App-Version': app.getVersion(),
+  };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
   try {
@@ -115,7 +140,7 @@ handle('api:request', async (_e, { method = 'GET', path: apiPath, body } = {}) =
     return { ok: false, status: 400, data: { error: 'Requisição inválida' } };
   }
   const result = await callApi(method, apiPath, body);
-  if (result.status === 401) {
+  if (result.status === 401 || result.status === 423) {
     token = null;
     await persistToken(null);
   }
@@ -161,6 +186,11 @@ handle('auth:restore', async () => {
     await persistToken(null);
     return null;
   }
+  if (result.status === 423) {
+    token = null;
+    await persistToken(null);
+    return { locked: true, error: result.data.error };
+  }
   return { offline: true, error: result.data.error };
 });
 
@@ -176,6 +206,7 @@ handle('config:get', () => ({
   ...loadConfig(),
   openAtLogin: app.getLoginItemSettings().openAtLogin,
   version: app.getVersion(),
+  deviceId: getDeviceId(),
 }));
 
 handle('config:set', (_e, changes) => {
@@ -301,21 +332,6 @@ function createWindow() {
   win.webContents.setWindowOpenHandler(({ url }) => {
     try { if (new URL(url).origin === 'https://wa.me') shell.openExternal(url); } catch { /* ignorado */ }
     return { action: 'deny' };
-  });
-
-  win.on('close', (e) => {
-    if (quitting || DEV) return;
-    const choice = dialog.showMessageBoxSync(win, {
-      type: 'question',
-      buttons: ['Fechar o app', 'Continuar aberto'],
-      defaultId: 1,
-      cancelId: 1,
-      title: 'Fechar o Hanoff Gestão?',
-      message: 'Fechar o app de gestão?',
-      detail: 'Com o app fechado você não recebe o aviso de agendamentos novos pelo site.',
-    });
-    if (choice === 1) e.preventDefault();
-    else quitting = true;
   });
 
   win.loadURL(`${APP_ORIGIN}/index.html`);
