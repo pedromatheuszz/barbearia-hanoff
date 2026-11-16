@@ -44,7 +44,7 @@ const PERMISSIONS = {
 
 // o desenvolvedor tem todas as permissões
 export const permissionsFor = (role) => Object.keys(PERMISSIONS).filter(p => role === DEV_ROLE || PERMISSIONS[p].includes(role));
-export const can = (role, permission) => (permission in PERMISSIONS) && (role === DEV_ROLE || PERMISSIONS[permission].includes(role));
+export const can = (role, permission) => Object.hasOwn(PERMISSIONS, permission) && (role === DEV_ROLE || PERMISSIONS[permission].includes(role));
 
 function secret() {
   const s = process.env.SESSION_SECRET;

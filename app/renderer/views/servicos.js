@@ -241,7 +241,10 @@ export default {
           h('thead', {}, h('tr', {}, h('th', {}, 'Serviço'), h('th', { class: 'right' }, 'Preço'), h('th', {}, 'Duração'), h('th', {}, 'No site'), h('th', {}))),
           h('tbody', {}, items.map(s => h('tr', { class: s.active ? '' : 'is-off' },
             h('td', {}, h('div', { class: 'product-name' }, s.name, s.badge ? h('span', { class: 'pill pill--primary' }, s.badge) : ''),
-              h('div', { class: 'product-desc' }, [s.desc, special(s).length ? `Preço próprio: ${special(s).join(', ')}` : ''].filter(Boolean).join(' • '))),
+              (() => {
+                const text = [s.desc, special(s).length ? `Preço próprio: ${special(s).join(', ')}` : ''].filter(Boolean).join(' • ');
+                return h('div', { class: 'product-desc', title: text || null }, text); // texto inteiro ao passar o mouse
+              })()),
             h('td', { class: 'right num' }, h('span', { class: 'price' }, `${s.priceFrom ? 'a partir de ' : ''}${money(s.price)}`)),
             h('td', { class: 'num' }, h('span', { class: 'pill' }, icon('clock'), duration(s.duration))),
             h('td', {}, toggle(s.active, (v) => setFlag('services', s, { active: v }, v ? `${s.name} voltou ao site` : `${s.name} saiu do site`), { disabled: !editable })),

@@ -113,8 +113,13 @@ Na tela Dispositivos:
 
 - **Computadores:** cada instalação do app se identifica (nome do computador, versão, último usuário e último acesso). Dá para dar um apelido, **bloquear** ou **liberar** cada um. Um computador bloqueado sai do app na próxima atualização (em segundos) e não consegue entrar de novo.
 - **Acesso ao app:** **Bloquear app** tira todos os usuários da barbearia do app, com uma mensagem opcional na tela de login (ex.: mensalidade em aberto). **Liberar app** volta tudo ao normal.
+- **Exigir liberação de computadores novos:** ligado, um computador que abre o app pela primeira vez entra bloqueado ("Novo: aguardando liberação") até você liberar. Fecha a brecha de alguém apagar a identificação do app para fugir de um bloqueio e também barra versões antigas do app, que não se identificam. Deixe ligado depois de instalar o app nos computadores da barbearia.
 - O login de desenvolvedor nunca é bloqueado, em nenhum computador, para sempre ser possível liberar.
 - O bloqueio vale só para o app de gestão: o site e os agendamentos dos clientes continuam funcionando.
+
+### Consumo do banco e da hospedagem
+
+O app consulta a agenda a cada 8 segundos durante o expediente (com 1 hora de folga antes e depois) e sempre que alguém está mexendo nele. Fora disso consulta a cada 10 minutos, para o banco gratuito do Neon poder "dormir" de madrugada e não gastar o limite mensal de uso.
 
 ## Desenvolvimento local
 

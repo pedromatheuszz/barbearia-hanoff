@@ -16,6 +16,11 @@ const VIEWS = [agenda, historico, clientes, servicos, barbearia, caixa, financei
 const GROUPS = ['Operação', 'Barbearia', 'Gestão', 'Sistema'];
 const POLL_MS = 8000;
 const STORE_POLL_MS = 60000;
+// Fora do expediente (e sem ninguém mexendo no app) consulta bem menos: assim o banco
+// gratuito (Neon) pode "dormir" de madrugada e não estoura o limite mensal de uso.
+const QUIET_POLL_MS = 10 * 60 * 1000;
+const ACTIVE_MS = 5 * 60 * 1000;
+const MARGIN_MIN = 60; // começa a consultar 1h antes de abrir e para 1h depois de fechar
 const CATALOG_TTL_MS = 5 * 60 * 1000;
 
 // Estado compartilhado com as telas
@@ -86,6 +91,9 @@ export const setCatalog = (catalog) => { state.catalog = catalog; state.catalogA
 // ---------- Agenda em segundo plano ----------
 
 let knownPending = null;
+let lastPoll = 0;
+let lastStorePoll = 0;
+let lastActivity = Date.now();
 let pollTimer = null;
 let storeTimer = null;
 let syncTimer = null;
@@ -95,8 +103,26 @@ let syncTimer = null;
 let polling = null;
 let pollAgain = false;
 
+const SP_TIME = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+
+/** Barbearia aberta agora (com margem) ou alguém usando o app? Então consulta no ritmo normal. */
+function isBusyTime() {
+  if (Date.now() - lastActivity < ACTIVE_MS) return true;
+  const hours = state.store?.settings?.hours;
+  if (!Array.isArray(hours)) return true;
+  const day = hours[new Date(`${todayISO()}T12:00:00Z`).getUTCDay()];
+  if (!day) return false;
+  const [hh, mm] = SP_TIME.format(new Date()).split(':').map(Number);
+  const now = hh * 60 + mm;
+  const toM = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  return now >= toM(day.open) - MARGIN_MIN && now <= toM(day.close) + MARGIN_MIN;
+}
+
+const due = (last, normalMs) => Date.now() - last >= (isBusyTime() ? normalMs : QUIET_POLL_MS) - 500;
+
 async function pollBoard() {
   if (!state.user) return;
+  lastPoll = Date.now();
   if (polling) {
     pollAgain = true; // alguém pediu atualização no meio: roda de novo ao terminar
     return polling;
@@ -106,7 +132,7 @@ async function pollBoard() {
       const board = await get(`/api/admin/appointments?day=${state.day}`);
       if (board.day !== state.day) return; // trocaram de dia enquanto a resposta vinha
       const fresh = knownPending ? board.pending.filter(a => !knownPending.has(a.id) && a.source === 'site') : [];
-      knownPending = new Set([...(knownPending || []), ...board.pending.map(a => a.id)]);
+      knownPending = new Set(board.pending.map(a => a.id));
       state.board = board;
       state.lastSync = new Date();
       if (fresh.length) onNewBookings(fresh);
@@ -172,6 +198,7 @@ function updateSync() {
 // ---------- Agenda online (pausa) ----------
 
 export async function refreshStore() {
+  lastStorePoll = Date.now();
   try {
     state.store = await get('/api/admin/store');
     renderStoreCard();
@@ -230,7 +257,8 @@ function buildNav() {
       h('div', { class: 'nav-group__label' }, group),
       items.map(v => h('button', { class: 'nav__item', dataset: { view: v.id }, title: v.label, onclick: () => go(v.id) },
         icon(v.icon, { size: 19 }), h('span', { class: 'nav__label' }, v.label),
-        v.id === 'agenda' ? h('span', { class: 'nav__badge', hidden: true }, '0') : h('span', { class: 'nav__key' }, `Ctrl ${views.indexOf(v) + 1}`))));
+        // atalhos só existem de Ctrl 1 a Ctrl 9
+        v.id === 'agenda' ? h('span', { class: 'nav__badge', hidden: true }, '0') : views.indexOf(v) < 9 ? h('span', { class: 'nav__key' }, `Ctrl ${views.indexOf(v) + 1}`) : null)));
   }).filter(Boolean));
 }
 
@@ -292,7 +320,7 @@ function openPalette() {
         groups.push(['Agendamentos', found.map(a => ({ icon: 'calendar', label: `${a.code} · ${a.customerName}`, hint: `${dayShort(a.day)} ${a.start} · ${a.barberName}`, run: () => openAppointment(a.id) }))]);
       }
     }
-    groups.push(['Ir para', views.filter(v => !query || v.label.toLowerCase().includes(query)).map(v => ({ icon: v.icon, label: v.label, hint: `Ctrl ${views.indexOf(v) + 1}`, run: () => go(v.id) }))]);
+    groups.push(['Ir para', views.filter(v => !query || v.label.toLowerCase().includes(query)).map(v => ({ icon: v.icon, label: v.label, hint: views.indexOf(v) < 9 ? `Ctrl ${views.indexOf(v) + 1}` : '', run: () => go(v.id) }))]);
     const actions = [
       can('agenda.book') && { icon: 'calendarPlus', label: 'Novo agendamento', hint: 'Ctrl N', run: () => openNewAppointment({}) },
       can('agenda.block') && { icon: 'ban', label: 'Bloquear horário (almoço, folga, férias)', run: () => openBlock({}) },
@@ -423,8 +451,8 @@ async function enterApp(user) {
   knownPending = null;
   await Promise.all([pollBoard(), refreshStore(), loadCatalog({ force: true }).catch(() => null)]);
   go(pref('gestao-view', 'agenda'));
-  pollTimer = setInterval(pollBoard, POLL_MS);
-  storeTimer = setInterval(refreshStore, STORE_POLL_MS);
+  pollTimer = setInterval(() => { if (due(lastPoll, POLL_MS)) pollBoard(); }, POLL_MS);
+  storeTimer = setInterval(() => { if (due(lastStorePoll, STORE_POLL_MS)) refreshStore(); }, STORE_POLL_MS);
   syncTimer = setInterval(updateSync, 5000);
 }
 
@@ -523,6 +551,14 @@ async function start() {
   setUnauthorizedHandler((msg) => { if (state.user) showLogin(msg || 'Sua sessão expirou. Entre novamente.'); });
   setConnectionHandler(setConnection);
   setLockedHandler((msg) => { if (state.user) showLogin(msg); });
+  // alguém mexendo no app: volta ao ritmo normal na hora
+  const wake = () => {
+    const idle = Date.now() - lastActivity >= ACTIVE_MS;
+    lastActivity = Date.now();
+    if (idle && state.user && Date.now() - lastPoll > POLL_MS) pollBoard();
+  };
+  ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, wake, { passive: true }));
+  window.addEventListener('focus', wake);
   $('#search-icon').replaceChildren(icon('search', { size: 15 }));
   $('#search-trigger').addEventListener('click', openPalette);
   $('#logout').replaceChildren(icon('logout', { size: 16 }));

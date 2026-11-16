@@ -1,5 +1,5 @@
 // Dispositivos: computadores que usam o app e bloqueio geral (somente o login de desenvolvedor)
-import { h, icon, btn, card, dateTime, toast, modal, field, input, skeleton, emptyState, confirmDialog } from '../ui.js';
+import { h, icon, btn, card, dateTime, toast, modal, field, input, skeleton, emptyState, confirmDialog, toggle } from '../ui.js';
 import { get, patch, del } from '../api.js';
 import { state } from '../app.js';
 
@@ -94,7 +94,21 @@ export default {
                 icon: 'check', kind: 'primary',
                 onclick: async () => { await patch('/api/admin/devices', { blocked: false }); toast('App liberado'); draw(); },
               })
-              : btn('Bloquear app', { icon: 'lock', kind: 'danger', onclick: () => licenseForm(license, draw) })));
+              : btn('Bloquear app', { icon: 'lock', kind: 'danger', onclick: () => licenseForm(license, draw) })),
+          h('div', { class: 'row', style: { flexWrap: 'nowrap', marginTop: '1rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border)' } },
+            h('div', { style: { flex: 1 } },
+              h('strong', {}, 'Exigir liberação de computadores novos'),
+              h('div', { class: 'faint', style: { fontSize: '12.5px' } }, 'Ligado: um computador que abre o app pela primeira vez fica bloqueado até você liberar aqui. Também barra versões antigas do app, que não se identificam.')),
+            toggle(license.approveDevices, async (value, box) => {
+              try {
+                await patch('/api/admin/devices', { approveDevices: value });
+                toast(value ? 'Computadores novos precisam da sua liberação' : 'Computadores novos entram liberados');
+                draw();
+              } catch (err) {
+                box.checked = !value;
+                toast(err.message, 'error');
+              }
+            })));
 
         const list = devices.length ? h('table', { class: 'table' },
           h('thead', {}, h('tr', {}, h('th', {}, 'Computador'), h('th', {}, 'Último usuário'), h('th', {}, 'Último acesso'), h('th', {}, 'Versão'), h('th', {}, 'Status'), h('th', {}))),

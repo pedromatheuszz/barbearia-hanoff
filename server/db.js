@@ -7,6 +7,8 @@ import fs from 'fs';
 
 let adapter = null;
 
+const isTransient = (error) => !error?.code && /fetch failed|network|socket|ECONNRESET|ETIMEDOUT|EAI_AGAIN/i.test(String(error?.message || error));
+
 export function setDb(db) {
   adapter = db;
 }
@@ -17,7 +19,16 @@ export function getDb() {
   if (!url) throw new Error('DATABASE_URL não configurada');
   const sql = neon(url);
   adapter = {
-    query: (text, params = []) => sql.query(text, params),
+    query: async (text, params = []) => {
+      try {
+        return await sql.query(text, params);
+      } catch (error) {
+        // oscilação de rede até o Neon (sem código de erro do Postgres): repete uma vez, só leituras
+        if (!isTransient(error) || !/^\s*SELECT\b/i.test(text)) throw error;
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return sql.query(text, params);
+      }
+    },
     transaction: (steps) => sql.transaction(steps.map(([text, params = []]) => sql.query(text, params))),
   };
   return adapter;

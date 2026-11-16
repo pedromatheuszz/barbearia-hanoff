@@ -547,7 +547,8 @@ export async function getDetail(db, id) {
 }
 
 const PAGE_SIZE = 50;
-const page = (p) => Math.max(1, Math.floor(Number(p)) || 1);
+// número de página absurdo ("1e30", "-5", "abc") vira a primeira ou a última possível, nunca erro de SQL
+const page = (p) => Math.min(10000, Math.max(1, Math.floor(Number(p)) || 1));
 
 /** Histórico: período (datas do atendimento), texto (código, nome, telefone), status e barbeiro. */
 export async function searchAppointments(db, { from, to, q = '', status = '', barber = '', page: p = 1 }) {

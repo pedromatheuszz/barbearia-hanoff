@@ -134,7 +134,7 @@ export default {
 
       container.replaceChildren(
         editable ? '' : h('div', { class: 'banner banner--info' }, icon('lock'), 'Você pode pausar a agenda online, mas só o dono altera dados, horários e regras.'),
-        h('div', { class: 'grid-2' }, h('div', { class: 'stack' }, situation, info, rules), h('div', { class: 'stack' }, hours)));
+        h('div', { class: 'grid-2 grid-2--stack-md' }, h('div', { class: 'stack' }, situation, info, rules), h('div', { class: 'stack' }, hours)));
     }
 
     load();

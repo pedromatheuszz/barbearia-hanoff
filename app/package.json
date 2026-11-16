@@ -1,7 +1,7 @@
 {
   "name": "hanoff-gestao",
   "productName": "Hanoff Gestão",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "App de gestão da Barbearia Hanoff: agenda, clientes, serviços, barbeiros, caixa, financeiro e equipe",
   "author": "Barbearia Hanoff",
   "private": true,

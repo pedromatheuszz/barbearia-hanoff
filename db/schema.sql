@@ -236,3 +236,6 @@ CREATE TABLE IF NOT EXISTS app_license (
   updated_by  TEXT,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Exigir liberação de computadores novos (o app que se registra pela primeira vez entra bloqueado)
+ALTER TABLE app_license ADD COLUMN IF NOT EXISTS approve_devices BOOLEAN NOT NULL DEFAULT false;

@@ -24,7 +24,7 @@ export default handle(async (req, context) => {
     return json(await getFullCatalog(db));
   }
 
-  const r = RESOURCES[resource];
+  const r = Object.hasOwn(RESOURCES, resource) ? RESOURCES[resource] : null; // nada de "constructor", "__proto__"
   if (!r) throw new HttpError(404, 'Rota não encontrada');
   const user = requirePermission(staff, 'catalog.edit');
   const items = (await getFullCatalog(db))[resource];

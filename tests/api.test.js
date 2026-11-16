@@ -686,3 +686,58 @@ describe('login de desenvolvedor: dispositivos e bloqueio do app', () => {
     expect(entries.some(e => e.username === 'suporte')).toBe(false);
   });
 });
+
+describe('verificação técnica: liberação de computadores e entradas estranhas', () => {
+  const call = (handler, method, path, { token, body, device, params = {} } = {}) => handler(new Request(BASE + path, {
+    method,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(device ? { 'x-device-id': device, 'x-app-version': '1.0.1' } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }), ctx({ params }));
+  let dev;
+
+  beforeAll(async () => {
+    dev = (await login('suporte', 'dev-senha-forte-987')).token;
+  });
+
+  it('com "exigir liberação", computador novo entra bloqueado até o desenvolvedor liberar', async () => {
+    await call(adminDevices, 'PATCH', '/api/admin/devices', { token: dev, body: { approveDevices: true } });
+    const NOVO = 'pc-novo-aprovacao-00001';
+    const first = await read(await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: NOVO }));
+    expect(first.status).toBe(423);
+    // app antigo (sem identificação) também é barrado
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner })).status).toBe(423);
+    // o desenvolvedor entra de um computador novo sem ficar pendente
+    expect((await call(adminDevices, 'GET', '/api/admin/devices', { token: dev, device: 'pc-novo-do-dev-0000001' })).status).toBe(200);
+
+    const { devices, license } = await read(await call(adminDevices, 'GET', '/api/admin/devices', { token: dev }));
+    expect(license.approveDevices).toBe(true);
+    expect(devices.find(d => d.id === NOVO)).toMatchObject({ blocked: true, note: 'Novo: aguardando liberação' });
+    expect(devices.find(d => d.id === 'pc-novo-do-dev-0000001').blocked).toBe(false);
+
+    await call(adminDevices, 'PATCH', `/api/admin/devices/${NOVO}`, { token: dev, body: { blocked: false }, params: { id: NOVO } });
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: NOVO })).status).toBe(200);
+    const after = await read(await call(adminDevices, 'GET', '/api/admin/devices', { token: dev }));
+    expect(after.devices.find(d => d.id === NOVO).note).toBe('');
+
+    await call(adminDevices, 'PATCH', '/api/admin/devices', { token: dev, body: { approveDevices: false } });
+    expect((await call(adminAppointments, 'GET', `/api/admin/appointments?day=${TUE}`, { token: owner, device: 'pc-outro-novo-00000001' })).status).toBe(200);
+  });
+
+  it('página absurda no histórico não vira erro do banco', async () => {
+    for (const page of ['1e30', '-5', 'abc', '99999999999']) {
+      const res = await call(adminAppointments, 'GET', `/api/admin/appointments?from=${TUE}&to=${TUE}&page=${page}`, { token: owner });
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it('nomes como "constructor" na rota do catálogo dão 404, não erro interno', async () => {
+    for (const resource of ['constructor', '__proto__', 'toString']) {
+      const res = await call(adminCatalog, 'POST', `/api/admin/catalog/${resource}`, { token: owner, body: {}, params: { resource } });
+      expect(res.status).toBe(404);
+    }
+  });
+});

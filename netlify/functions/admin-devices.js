@@ -1,6 +1,7 @@
 // /api/admin/devices — controle do desenvolvedor (papel "dev")
 //   GET               bloqueio geral do app e computadores que já usaram o app
 //   PATCH             { blocked, message }  bloqueia ou libera o app para todos (menos o desenvolvedor)
+//                     { approveDevices }    exige (ou não) liberar cada computador novo
 //   PATCH /:id        { blocked, note }     bloqueia ou libera um computador
 //   DELETE /:id       tira da lista um computador liberado (ele volta a aparecer se usar o app de novo)
 import { getDb } from '../../server/db.js';
@@ -19,7 +20,8 @@ export default handle(async (req, context) => {
     if (req.method !== 'PATCH') return methodNotAllowed(['GET', 'PATCH']);
     const body = await readJson(req);
     await setLicense(db, body, user.username);
-    await audit(db, user.username, body.blocked ? 'sistema.bloquear' : 'sistema.liberar', { message: body.message });
+    const action = typeof body.blocked === 'boolean' ? (body.blocked ? 'sistema.bloquear' : 'sistema.liberar') : 'sistema.aprovacao';
+    await audit(db, user.username, action, { message: body.message, approveDevices: body.approveDevices });
     return state();
   }
 

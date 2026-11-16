@@ -1,16 +1,22 @@
 /**
  * Barbearia Hanoff — Service Worker
  * - Páginas: rede primeiro (conteúdo sempre atual), cópia salva se estiver sem internet.
- * - Arquivos com hash do build (/assets/) e imagens: cache primeiro.
+ * - Arquivos com hash do build (/assets/): cache primeiro (o nome muda a cada versão).
+ * - Imagens (/images/, sem hash): mostra a cópia salva e atualiza em segundo plano,
+ *   para uma logo ou ícone novo aparecer sem precisar trocar a versão do cache.
  * - A API (/api/) nunca é guardada: horários livres mudam a cada agendamento.
  */
-const VERSION = 'hanoff-v4';
+const VERSION = 'hanoff-v5';
 const PAGES = `${VERSION}-pages`;
 const STATIC = `${VERSION}-static`;
-const CORE = ['/', '/agendamento/', '/manifest.json', '/images/logo-hanoff.svg', '/images/favicon.svg', '/images/icon-192.png'];
+const CORE_PAGES = ['/', '/agendamento/', '/manifest.json'];
+const CORE_IMAGES = ['/images/logo-hanoff.svg', '/images/favicon.svg', '/images/icon-192.png'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(PAGES).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()).catch(() => {}));
+  event.waitUntil(Promise.all([
+    caches.open(PAGES).then((cache) => cache.addAll(CORE_PAGES)),
+    caches.open(STATIC).then((cache) => cache.addAll(CORE_IMAGES)),
+  ]).catch(() => {}).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -41,15 +47,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/images/')) {
-    event.respondWith(
-      caches.match(request).then((hit) => hit || fetch(request).then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(STATIC).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      }))
-    );
+  const save = (response) => {
+    if (response.ok) {
+      const copy = response.clone();
+      caches.open(STATIC).then((cache) => cache.put(request, copy));
+    }
+    return response;
+  };
+
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(caches.match(request).then((hit) => hit || fetch(request).then(save)));
+    return;
+  }
+
+  if (url.pathname.startsWith('/images/')) {
+    const fresh = fetch(request).then(save);
+    event.waitUntil(fresh.catch(() => {}));
+    // procura só no cache de arquivos (onde a cópia nova é gravada)
+    event.respondWith(caches.open(STATIC).then((cache) => cache.match(request)).then((hit) => hit || fresh));
   }
 });
